@@ -1,8 +1,12 @@
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 const String studentName = 'Kadek Rica Cahyani';
+
 const String studentNim = '2415051026';
+const String apiUrl = 'https://course-api-pearl.vercel.app/courses';
 
 const List<Map<String, String>> courses = [
   {
@@ -43,12 +47,38 @@ const List<Map<String, String>> courses = [
   },
 ];
 
+Future<List<dynamic>> fetchCourses() async {
+  final response = await http.get(Uri.parse(apiUrl));
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body) as List<dynamic>;
+  }
+
+  throw Exception('HTTP ${response.statusCode}');
+}
+
 void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+
+    fetchCourses().then((data) {
+      debugPrint('Jumlah course dari API: ${data.length}');
+    }).catchError((error) {
+      debugPrint('Gagal mengambil data: $error');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -1,7 +1,7 @@
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'models/course.dart';
 
 const String studentName = 'Kadek Rica Cahyani';
 
@@ -47,11 +47,12 @@ const List<Map<String, String>> courses = [
   },
 ];
 
-Future<List<dynamic>> fetchCourses() async {
+Future<List<Course>> fetchCourses() async {
   final response = await http.get(Uri.parse(apiUrl));
 
   if (response.statusCode == 200) {
-    return jsonDecode(response.body) as List<dynamic>;
+    final List<dynamic> data = jsonDecode(response.body);
+    return data.map((json) => Course.fromJson(json)).toList();
   }
 
   throw Exception('HTTP ${response.statusCode}');
@@ -393,6 +394,8 @@ class SummaryCard extends StatelessWidget {
   }
 }
 
+
+
 class CoursesPage extends StatefulWidget {
   const CoursesPage({super.key});
 
@@ -402,32 +405,35 @@ class CoursesPage extends StatefulWidget {
 
 class _CoursesPageState extends State<CoursesPage> {
   final Set<String> favoriteCodes = {};
+  late Future<List<Course>> coursesFuture;
 
-  Future<void> openCourse(
-    BuildContext context,
-    Map<String, String> course,
-  ) async {
-    final code = course['code']!;
+  @override
+  void initState() {
+    super.initState();
+    coursesFuture = fetchCourses();
+  }
 
-    final bool? selected = await Navigator.push<bool>(
+  Future<void> refreshCourses() async {
+    setState(() {
+      coursesFuture = fetchCourses();
+    });
+    await coursesFuture;
+  }
+
+  Future<void> openCourse(Map<String, String> course) async {
+    final result = await Navigator.push<bool>(
       context,
-      MaterialPageRoute<bool>(
+      MaterialPageRoute(
         builder: (context) => CourseDetailPage(course: course),
       ),
     );
 
     if (!mounted) return;
 
-    if (selected == true) {
+    if (result == true) {
       setState(() {
-        favoriteCodes.add(code);
+        favoriteCodes.add(course['code']!);
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${course['title']} dipilih.'),
-        ),
-      );
     }
   }
 
@@ -435,66 +441,86 @@ class _CoursesPageState extends State<CoursesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Daftar Courses')),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-
-          if (width < 600) {
-            return ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: courses.length,
-              itemBuilder: (context, index) {
-                final course = courses[index];
-                return CourseCard(
-                  course: course,
-                  isFavorite: favoriteCodes.contains(course['code']),
-                  onFavorite: () {
-                    setState(() {
-                      final code = course['code']!;
-                      if (!favoriteCodes.add(code)) {
-                        favoriteCodes.remove(code);
-                      }
-                    });
-                  },
-                  onTap: () => openCourse(context, course),
-                );
-              },
+      body: FutureBuilder<List<Course>>(
+        future: coursesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
             );
           }
 
-          final int columns = width < 840 ? 2 : 3;
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Gagal mengambil data: ${snapshot.error}'),
+            );
+          }
 
-          return GridView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: courses.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: columns,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              mainAxisExtent: 190,
+          final apiCourses = snapshot.data ?? [];
+
+          if (apiCourses.isEmpty) {
+            return const Center(
+              child: Text('Tidak ada data course.'),
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: refreshCourses,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                final columns = width < 600
+                    ? 1
+                    : (width < 840 ? 2 : 3);
+
+                return GridView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: apiCourses.length,
+                  gridDelegate:
+                      SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: columns,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    mainAxisExtent: 210,
+                  ),
+                  itemBuilder: (context, index) {
+                    final item = apiCourses[index];
+
+                    final course = <String, String>{
+                      'title': item.title,
+                      'code': item.code,
+                      'category': 'Course API',
+                      'description': 'Mata kuliah dari API.',
+                      'status': item.status,
+                      'credits': item.credits.toString(),
+                    };
+
+                    return CourseCard(
+                      course: course,
+                      isFavorite: favoriteCodes.contains(item.code),
+                      onFavorite: () {
+                        setState(() {
+                          if (!favoriteCodes.add(item.code)) {
+                            favoriteCodes.remove(item.code);
+                          }
+                        });
+                      },
+                      onTap: () => openCourse(course),
+                    );
+                  },
+                );
+              },
             ),
-            itemBuilder: (context, index) {
-              final course = courses[index];
-              return CourseCard(
-                course: course,
-                isFavorite: favoriteCodes.contains(course['code']),
-                onFavorite: () {
-                  setState(() {
-                    final code = course['code']!;
-                    if (!favoriteCodes.add(code)) {
-                      favoriteCodes.remove(code);
-                    }
-                  });
-                },
-                onTap: () => openCourse(context, course),
-              );
-            },
           );
         },
       ),
     );
   }
 }
+
+
+
+
 
 class CourseCard extends StatelessWidget {
   final Map<String, String> course;
@@ -512,22 +538,13 @@ class CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        onLongPress: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Course ${course['title']} ditekan lama.'),
-            ),
-          );
-        },
+    return InkWell(
+      onTap: onTap,
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 12),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Icon(Icons.menu_book, size: 32),
               const SizedBox(width: 12),
@@ -536,21 +553,17 @@ class CourseCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      course['title']!,
+                      course['title'] ?? '-',
                       style: Theme.of(context).textTheme.titleMedium,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 6),
+                    Text('Kode: ${course['code'] ?? '-'}'),
                     const SizedBox(height: 4),
-                    Text('Kode: ${course['code']}'),
-                    const SizedBox(height: 4),
-                    Expanded(
-                      child: Text(
-                        course['description']!,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
+                    Text('Status: ${course['status'] ?? 'planned'}'),
+                    Text('SKS: ${course['credits'] ?? '-'}'),
+                    const Spacer(),
                     Align(
                       alignment: Alignment.centerRight,
                       child: IconButton(
@@ -576,6 +589,8 @@ class CourseCard extends StatelessWidget {
     );
   }
 }
+
+
 
 class CourseDetailPage extends StatefulWidget {
   final Map<String, String> course;

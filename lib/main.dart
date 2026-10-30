@@ -1,13 +1,17 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'models/course.dart';
+import 'services/course_api_service.dart';
+import 'repositories/course_repository.dart';
 
 const String studentName = 'Kadek Rica Cahyani';
 
 const String studentNim = '2415051026';
-const String apiUrl = 'https://course-api-pearl.vercel.app/courses';
+const String baseUrl =
+    'https://course-api-pearl.vercel.app';
 
+final courseRepository = CourseRepository(
+  CourseApiService(baseUrl),
+);
 const List<Map<String, String>> courses = [
   {
     'title': 'Flutter Dasar',
@@ -47,16 +51,6 @@ const List<Map<String, String>> courses = [
   },
 ];
 
-Future<List<Course>> fetchCourses() async {
-  final response = await http.get(Uri.parse(apiUrl));
-
-  if (response.statusCode == 200) {
-    final List<dynamic> data = jsonDecode(response.body);
-    return data.map((json) => Course.fromJson(json)).toList();
-  }
-
-  throw Exception('HTTP ${response.statusCode}');
-}
 
 void main() {
   runApp(const MyApp());
@@ -74,7 +68,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-    fetchCourses().then((data) {
+    courseRepository.loadCourses().then((data) {
       debugPrint('Jumlah course dari API: ${data.length}');
     }).catchError((error) {
       debugPrint('Gagal mengambil data: $error');
@@ -410,12 +404,12 @@ class _CoursesPageState extends State<CoursesPage> {
   @override
   void initState() {
     super.initState();
-    coursesFuture = fetchCourses();
+    coursesFuture = courseRepository.loadCourses();
   }
 
   Future<void> refreshCourses() async {
     setState(() {
-      coursesFuture = fetchCourses();
+      coursesFuture = courseRepository.loadCourses();
     });
     await coursesFuture;
   }

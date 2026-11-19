@@ -1,74 +1,48 @@
-import 'models/course.dart';
 import 'package:flutter/material.dart';
-import 'services/course_data_source.dart';
-import 'services/course_api_service.dart';
-import 'repositories/course_repository.dart';
 import 'package:provider/provider.dart';
-import 'providers/course_provider.dart';
-import 'widgets/error_view.dart';
-import 'screens/course_form_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'config/supabase_config.dart';
+import 'providers/course_provider.dart';
+import 'repositories/course_repository.dart';
+import 'screens/responsive_shell.dart';
+// ignore: unused_import
+import 'services/course_api_service.dart';
+import 'services/course_data_source.dart';
+import 'services/course_supabase_service.dart';
 
 const String studentName = 'Kadek Rica Cahyani';
-
 const String studentNim = '2415051026';
-const String baseUrl =
-    'https://course-api-pearl.vercel.app';
+const String baseUrl = 'https://course-api-pearl.vercel.app';
 const String supabaseUrl = SupabaseConfig.url;
 const String supabaseAnonKey = SupabaseConfig.anonKey;
 
-final CourseDataSource dataSource = CourseApiService(baseUrl);
-final repository = CourseRepository(dataSource);
-const List<Map<String, String>> courses = [
-  {
-    'title': 'Flutter Dasar',
-    'code': 'FL001',
-    'description': 'Pengenalan Flutter dan Dart.',
-    'category': 'Pemrograman',
-  },
-  {
-    'title': 'UI Fundamentals',
-    'code': 'UI002',
-    'description': 'Dasar desain antarmuka pengguna.',
-    'category': 'Desain',
-  },
-  {
-    'title': 'Responsive Layout',
-    'code': 'RL003',
-    'description': 'Membuat tampilan untuk berbagai ukuran layar.',
-    'category': 'Flutter',
-  },
-  {
-    'title': 'Navigasi Flutter',
-    'code': 'NV004',
-    'description': 'Mengelola perpindahan halaman.',
-    'category': 'Flutter',
-  },
-  {
-    'title': 'State Management',
-    'code': 'SM005',
-    'description': 'Mengelola perubahan state aplikasi.',
-    'category': 'Pemrograman',
-  },
-  {
-    'title': 'Form dan Validasi',
-    'code': 'FV006',
-    'description': 'Membuat form dengan validasi input.',
-    'category': 'Flutter',
-  },
-];
+// =============================================================================
+// KONFIGURASI DATA SOURCE AKTIF (Tahap 16)
+// Sesuai arsitektur Repository Pattern, hanya satu baris ini yang diubah
+// untuk berpindah sumber data antara REST API dan Supabase Database:
+// =============================================================================
+final CourseDataSource dataSource = CourseSupabaseService();
+// final CourseDataSource dataSource = CourseApiService(baseUrl);
 
+final repository = CourseRepository(dataSource);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (!supabaseUrl.contains('YOUR_PROJECT_REF')) {
-    await Supabase.initialize(
-      url: supabaseUrl,
-      // ignore: deprecated_member_use
-      anonKey: supabaseAnonKey,
-    );
+
+  // Inisialisasi Supabase Client jika URL sudah diisi
+  try {
+    if (supabaseUrl.isNotEmpty && !supabaseUrl.contains('YOUR_PROJECT_REF')) {
+      await Supabase.initialize(
+        url: supabaseUrl,
+        // ignore: deprecated_member_use
+        anonKey: supabaseAnonKey,
+      );
+    }
+  } catch (e) {
+    debugPrint('Supabase init warning: $e');
   }
+
   runApp(
     ChangeNotifierProvider(
       create: (_) => CourseProvider(repository)..loadCourses(),
@@ -77,29 +51,13 @@ Future<void> main() async {
   );
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  @override
-  void initState() {
-    super.initState();
-
-    repository.loadCourses().then((data) {
-      debugPrint('Jumlah course dari API: ${data.length}');
-    }).catchError((error) {
-      debugPrint('Gagal mengambil data: $error');
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter UI Fundamentals',
+      title: 'Course Data Manager',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -110,106 +68,17 @@ class _MyAppState extends State<MyApp> {
           border: OutlineInputBorder(),
         ),
       ),
-      home: const ResponsiveShell(),
+      home: const ResponsiveShell(
+        homePage: HomePage(),
+        profilePage: ProfilePage(),
+      ),
     );
   }
 }
 
-class ResponsiveShell extends StatefulWidget {
-  const ResponsiveShell({super.key});
-
-  @override
-  State<ResponsiveShell> createState() => _ResponsiveShellState();
-}
-
-class _ResponsiveShellState extends State<ResponsiveShell> {
-  int selectedIndex = 0;
-
-  final List<Widget> pages = const [
-    HomePage(),
-    CoursesPage(),
-    ProfilePage(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final bool expanded = constraints.maxWidth >= 840;
-
-        if (expanded) {
-          return Scaffold(
-            body: Row(
-              children: [
-                NavigationRail(
-                  selectedIndex: selectedIndex,
-                  onDestinationSelected: (index) {
-                    setState(() => selectedIndex = index);
-                  },
-                  labelType: NavigationRailLabelType.all,
-                  destinations: const [
-                    NavigationRailDestination(
-                      icon: Icon(Icons.home_outlined),
-                      selectedIcon: Icon(Icons.home),
-                      label: Text('Home'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.menu_book_outlined),
-                      selectedIcon: Icon(Icons.menu_book),
-                      label: Text('Courses'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.person_outline),
-                      selectedIcon: Icon(Icons.person),
-                      label: Text('Profile'),
-                    ),
-                  ],
-                ),
-                const VerticalDivider(width: 1),
-                Expanded(
-                  child: IndexedStack(
-                    index: selectedIndex,
-                    children: pages,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return Scaffold(
-          body: IndexedStack(
-            index: selectedIndex,
-            children: pages,
-          ),
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: selectedIndex,
-            onDestinationSelected: (index) {
-              setState(() => selectedIndex = index);
-            },
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(Icons.home),
-                label: 'Home',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.menu_book_outlined),
-                selectedIcon: Icon(Icons.menu_book),
-                label: 'Courses',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.person),
-                label: 'Profile',
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
+// =============================================================================
+// WIDGET PENDUKUNG (Dashboard, Profile, StudentHeader dari Pertemuan sebelumnya)
+// =============================================================================
 
 class StudentHeader extends StatelessWidget {
   const StudentHeader({super.key});
@@ -235,7 +104,7 @@ class StudentHeader extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
-                  Text('NIM: $studentNim'),
+                  const Text('NIM: $studentNim'),
                 ],
               ),
             ),
@@ -252,6 +121,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.sizeOf(context);
+    final provider = context.watch<CourseProvider>();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Dashboard')),
@@ -276,14 +146,12 @@ class HomePage extends StatelessWidget {
               const StudentHeader(),
               const SizedBox(height: 12),
               Text(
-                'Selamat datang di aplikasi Flutter UI Fundamentals.',
+                'Selamat datang di Course Data Manager.',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
-              Text('Ukuran layar: ${screenSize.width.toInt()} × '
-                  '${screenSize.height.toInt()}'),
-              Text('Orientasi: '
-                  '${screenSize.width > screenSize.height ? "Landscape" : "Portrait"}'),
+              Text('Ukuran layar: ${screenSize.width.toInt()} × ${screenSize.height.toInt()}'),
+              Text('Orientasi: ${screenSize.width > screenSize.height ? "Landscape" : "Portrait"}'),
               Text('Breakpoint layout: $layoutName'),
               const SizedBox(height: 16),
               Text(
@@ -298,21 +166,21 @@ class HomePage extends StatelessWidget {
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
                 childAspectRatio: width < 600 ? 2.6 : 1.8,
-                children: const [
+                children: [
                   SummaryCard(
                     title: 'Total Course',
-                    value: '6',
+                    value: provider.courses.length.toString(),
                     icon: Icons.menu_book,
                   ),
                   SummaryCard(
-                    title: 'Status',
-                    value: 'Aktif',
-                    icon: Icons.check_circle_outline,
+                    title: 'Favorit',
+                    value: provider.favoriteCourses.length.toString(),
+                    icon: Icons.favorite,
                   ),
-                  SummaryCard(
+                  const SummaryCard(
                     title: 'Platform',
-                    value: 'Flutter',
-                    icon: Icons.phone_android,
+                    value: 'Flutter & Backend',
+                    icon: Icons.cloud_done,
                   ),
                 ],
               ),
@@ -326,20 +194,15 @@ class HomePage extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  Chip(label: Text('MediaQuery')),
-                  Chip(label: Text('LayoutBuilder')),
-                  Chip(label: Text('Expanded')),
-                  Chip(label: Text('Navigation')),
-                  Chip(label: Text('Form Validation')),
-                  Chip(label: Text('Debugging')),
+                  Chip(label: Text('REST API')),
+                  Chip(label: Text('HTTP GET/POST/PUT/DELETE')),
+                  Chip(label: Text('Supabase Backend')),
+                  Chip(label: Text('PostgreSQL Database')),
+                  Chip(label: Text('Repository Pattern')),
+                  Chip(label: Text('Responsive Navigation')),
                 ],
               ),
               const SizedBox(height: 20),
-              const Text(
-                'Kasus A: teks panjang dibatasi dengan Expanded '
-                'agar tidak menyebabkan Row overflow.',
-              ),
-              const SizedBox(height: 8),
               const Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -347,9 +210,7 @@ class HomePage extends StatelessWidget {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '$studentNim - $studentName - '
-                      'teks sangat panjang yang akan membungkus '
-                      'ke baris berikutnya tanpa melewati batas layar.',
+                      '$studentNim - $studentName - Course Data Manager berhasil terintegrasi dengan REST API dan Supabase PostgreSQL.',
                       softWrap: true,
                     ),
                   ),
@@ -409,444 +270,6 @@ class SummaryCard extends StatelessWidget {
   }
 }
 
-
-
-
-class CoursesPage extends StatefulWidget {
-  const CoursesPage({super.key});
-
-  @override
-  State<CoursesPage> createState() => _CoursesPageState();
-}
-
-class _CoursesPageState extends State<CoursesPage> {
-  final Set<String> favoriteCodes = {};
-
-  Future<void> openCourse(Map<String, String> course) async {
-    final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CourseDetailPage(course: course),
-      ),
-    );
-
-    if (!mounted) return;
-
-    if (result == true) {
-      setState(() {
-        favoriteCodes.add(course['code']!);
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final provider = context.watch<CourseProvider>();
-
-    if (provider.isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
-    if (provider.error != null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Daftar Courses')),
-        body: ErrorView(
-          message: provider.error!,
-          onRetry: provider.loadCourses,
-        ),
-      );
-    }
-
-    if (provider.courses.isEmpty) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Daftar Courses')),
-        body: const Center(
-          child: Text('Data course belum tersedia'),
-        ),
-      );
-    }
-
-    final apiCourses = provider.courses;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Daftar Courses'),
-      ),
-      body: RefreshIndicator(
-        onRefresh: provider.loadCourses,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final columns = width < 600
-                ? 1
-                : (width < 840 ? 2 : 3);
-
-            return GridView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: apiCourses.length,
-              gridDelegate:
-                  SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: columns,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                mainAxisExtent: 210,
-              ),
-              itemBuilder: (context, index) {
-                final item = apiCourses[index];
-
-                final course = <String, String>{
-                  'id': item.id?.toString() ?? '',
-                  'title': item.title,
-                  'code': item.code,
-                  'category': 'Course API',
-                  'description': 'Mata kuliah dari API.',
-                  'status': item.status,
-                  'credits': item.credits.toString(),
-                };
-
-                return CourseCard(
-                  course: course,
-                  isFavorite: favoriteCodes.contains(item.code),
-                  onFavorite: () {
-                    setState(() {
-                      if (!favoriteCodes.add(item.code)) {
-                        favoriteCodes.remove(item.code);
-                      }
-                    });
-                  },
-                  onTap: () => openCourse(course),
-                );
-              },
-            );
-          },
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CourseFormPage(),
-            ),
-          );
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Tambah Course'),
-      ),
-    );
-  }
-}
-
-
-
-
-
-
-class CourseCard extends StatelessWidget {
-  final Map<String, String> course;
-  final bool isFavorite;
-  final VoidCallback onFavorite;
-  final VoidCallback onTap;
-  final VoidCallback? onDelete;
-
-  const CourseCard({
-    super.key,
-    required this.course,
-    required this.isFavorite,
-    required this.onFavorite,
-    required this.onTap,
-    this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              const Icon(Icons.menu_book, size: 32),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      course['title'] ?? '-',
-                      style: Theme.of(context).textTheme.titleMedium,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 6),
-                    Text('Kode: ${course['code'] ?? '-'}'),
-                    const SizedBox(height: 4),
-                    Text('Status: ${course['status'] ?? 'planned'}'),
-                    Text('SKS: ${course['credits'] ?? '-'}'),
-                    const Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        IconButton(
-                          tooltip: 'Edit Course',
-                          icon: const Icon(Icons.edit, size: 20),
-                          onPressed: () {
-                            final id = int.tryParse(course['id'] ?? '');
-                            final credits = int.tryParse(course['credits'] ?? '0') ?? 0;
-                            final courseObj = Course(
-                              id: id,
-                              code: course['code'] ?? '',
-                              title: course['title'] ?? '',
-                              credits: credits,
-                              status: course['status'] ?? 'planned',
-                            );
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CourseFormPage(course: courseObj),
-                              ),
-                            );
-                          },
-                        ),
-                        if (onDelete != null)
-                          IconButton(
-                            tooltip: 'Hapus Course',
-                            icon: const Icon(Icons.close, size: 20, color: Colors.red),
-                            onPressed: onDelete,
-                          ),
-                        IconButton(
-                          tooltip: isFavorite
-                              ? 'Hapus favorit'
-                              : 'Tambah favorit',
-                          onPressed: onFavorite,
-                          icon: Icon(
-                            isFavorite
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            color: isFavorite ? Colors.red : null,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-
-
-class CourseDetailPage extends StatefulWidget {
-  final Map<String, String> course;
-
-  const CourseDetailPage({
-    super.key,
-    required this.course,
-  });
-
-  @override
-  State<CourseDetailPage> createState() => _CourseDetailPageState();
-}
-
-class _CourseDetailPageState extends State<CourseDetailPage> {
-  bool isFavorite = false;
-  bool isNavigating = false;
-
-  void selectAndReturn() {
-    if (isNavigating) return;
-
-    setState(() {
-      isNavigating = true;
-    });
-
-    Navigator.pop(context, true);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final course = widget.course;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detail Course'),
-        actions: [
-          IconButton(
-            tooltip: 'Hapus Course',
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () async {
-              final id = int.tryParse(course['id'] ?? '');
-              if (id == null) return;
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Konfirmasi Hapus'),
-                  content: Text(
-                    'Apakah Anda yakin ingin menghapus course "${course['title'] ?? ''}"?',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Batal'),
-                    ),
-                    FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                      onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text('Hapus'),
-                    ),
-                  ],
-                ),
-              );
-
-              if (confirm == true) {
-                if (!context.mounted) return;
-                try {
-                  await context.read<CourseProvider>().deleteCourse(id);
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Course berhasil dihapus'),
-                    ),
-                  );
-                  Navigator.pop(context, true);
-                } catch (e) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Gagal menghapus course: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
-          ),
-          IconButton(
-            tooltip: 'Edit Course',
-            icon: const Icon(Icons.edit),
-            onPressed: () async {
-              final id = int.tryParse(course['id'] ?? '');
-              final credits = int.tryParse(course['credits'] ?? '0') ?? 0;
-              final courseObj = Course(
-                id: id,
-                code: course['code'] ?? '',
-                title: course['title'] ?? '',
-                credits: credits,
-                status: course['status'] ?? 'planned',
-              );
-              final updated = await Navigator.push<bool>(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CourseFormPage(course: courseObj),
-                ),
-              );
-              if (!context.mounted) return;
-              if (updated == true) {
-                Navigator.pop(context);
-              }
-            },
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          const StudentHeader(),
-          const SizedBox(height: 16),
-          Icon(
-            Icons.menu_book,
-            size: 72,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            course['title']!,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 20),
-          DetailInfo(label: 'Kode', value: course['code']!),
-          DetailInfo(
-            label: 'Kategori',
-            value: course['category']!,
-          ),
-          DetailInfo(
-            label: 'Deskripsi',
-            value: course['description']!,
-          ),
-          const SizedBox(height: 16),
-          OutlinedButton.icon(
-            onPressed: () {
-              setState(() {
-                isFavorite = !isFavorite;
-              });
-            },
-            icon: Icon(
-              isFavorite ? Icons.favorite : Icons.favorite_border,
-            ),
-            label: Text(
-              isFavorite ? 'Hapus Favorit' : 'Tambah Favorit',
-            ),
-          ),
-          const SizedBox(height: 8),
-          FilledButton(
-            onPressed: isNavigating ? null : selectAndReturn,
-            child: Text(
-              isNavigating ? 'Memproses...' : 'Pilih Course dan Kembali',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class DetailInfo extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const DetailInfo({
-    super.key,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 100,
-              child: Text(
-                label,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(child: Text(value)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -874,19 +297,14 @@ class _ProfilePageState extends State<ProfilePage> {
     if (isSubmitting) return;
 
     FocusScope.of(context).unfocus();
-
     if (!formKey.currentState!.validate()) return;
 
-    final dialogContext = context;
-
     final bool? confirmed = await showDialog<bool>(
-      context: dialogContext,
+      context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Konfirmasi'),
-          content: const Text(
-            'Apakah kamu yakin ingin mengirim feedback?',
-          ),
+          content: const Text('Apakah kamu yakin ingin mengirim feedback?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
@@ -901,27 +319,13 @@ class _ProfilePageState extends State<ProfilePage> {
       },
     );
 
-  if (!mounted) return;
-  if (confirmed != true || isSubmitting) return;
-
-setState(() {
-  isSubmitting = true;
-});
-
-if (!mounted) return;
-if (confirmed != true || isSubmitting) return;
-
-setState(() {
-  isSubmitting = true;
-});
-
     if (confirmed != true || !mounted || isSubmitting) return;
 
     setState(() {
       isSubmitting = true;
     });
 
-    await Future<void>.delayed(const Duration(seconds: 2));
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     if (!mounted) return;
 
@@ -930,9 +334,7 @@ setState(() {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Feedback berhasil dikirim!'),
-      ),
+      const SnackBar(content: Text('Feedback berhasil dikirim!')),
     );
 
     feedbackController.clear();
@@ -943,100 +345,89 @@ setState(() {
     return Scaffold(
       appBar: AppBar(title: const Text('Profil dan Feedback')),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              keyboardDismissBehavior:
-                  ScrollViewKeyboardDismissBehavior.onDrag,
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: Form(
-                    key: formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const StudentHeader(),
-                        const SizedBox(height: 20),
-                        Text(
-                          'Form Feedback',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: nameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Nama',
-                            prefixIcon: Icon(Icons.person),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Nama wajib diisi';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: nimController,
-                          decoration: const InputDecoration(
-                            labelText: 'NIM',
-                            prefixIcon: Icon(Icons.badge),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'NIM wajib diisi';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: feedbackController,
-                          minLines: 3,
-                          maxLines: 5,
-                          decoration: const InputDecoration(
-                            labelText: 'Feedback',
-                            hintText: 'Tulis minimal 5 karakter',
-                            alignLabelWithHint: true,
-                          ),
-                          validator: (value) {
-                            if (value == null ||
-                                value.trim().length < 5) {
-                              return 'Feedback minimal 5 karakter';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        FilledButton.icon(
-                          onPressed: isSubmitting ? null : submitForm,
-                          icon: isSubmitting
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Icons.send),
-                          label: Text(
-                            isSubmitting ? 'Mengirim...' : 'Kirim Feedback',
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'Catatan: form dapat digulir saat keyboard terbuka.',
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Form(
+                key: formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const StudentHeader(),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Form Feedback',
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nama',
+                        prefixIcon: Icon(Icons.person),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Nama wajib diisi';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: nimController,
+                      decoration: const InputDecoration(
+                        labelText: 'NIM',
+                        prefixIcon: Icon(Icons.badge),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'NIM wajib diisi';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: feedbackController,
+                      minLines: 3,
+                      maxLines: 5,
+                      decoration: const InputDecoration(
+                        labelText: 'Feedback',
+                        hintText: 'Tulis minimal 5 karakter',
+                        alignLabelWithHint: true,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().length < 5) {
+                          return 'Feedback minimal 5 karakter';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton.icon(
+                      onPressed: isSubmitting ? null : submitForm,
+                      icon: isSubmitting
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.send),
+                      label: Text(
+                        isSubmitting ? 'Mengirim...' : 'Kirim Feedback',
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );

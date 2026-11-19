@@ -11,6 +11,23 @@ class CourseProvider extends ChangeNotifier {
   bool isLoading = false;
   String? error;
 
+  // Set kode course yang difavoritkan
+  final Set<String> _favoriteCodes = {};
+
+  Set<String> get favoriteCodes => Set.unmodifiable(_favoriteCodes);
+
+  List<Course> get favoriteCourses =>
+      courses.where((c) => _favoriteCodes.contains(c.code)).toList();
+
+  bool isFavorite(String code) => _favoriteCodes.contains(code);
+
+  void toggleFavorite(String code) {
+    if (!_favoriteCodes.add(code)) {
+      _favoriteCodes.remove(code);
+    }
+    notifyListeners();
+  }
+
   Future<void> loadCourses() async {
     isLoading = true;
     error = null;
@@ -36,8 +53,11 @@ class CourseProvider extends ChangeNotifier {
     await loadCourses();
   }
 
-  Future<void> deleteCourse(int id) async {
+  Future<void> deleteCourse(int id, [String? code]) async {
     await repository.deleteCourse(id);
+    if (code != null) {
+      _favoriteCodes.remove(code);
+    }
     await loadCourses();
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'models/course.dart';
 import 'services/course_api_service.dart';
 import 'repositories/course_repository.dart';
+import 'package:provider/provider.dart';
+import 'providers/course_provider.dart';
+import 'widgets/error_view.dart';
 
 const String studentName = 'Kadek Rica Cahyani';
 
@@ -53,7 +55,12 @@ const List<Map<String, String>> courses = [
 
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => CourseProvider(courseRepository)..loadCourses(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -390,6 +397,7 @@ class SummaryCard extends StatelessWidget {
 
 
 
+
 class CoursesPage extends StatefulWidget {
   const CoursesPage({super.key});
 
@@ -399,20 +407,6 @@ class CoursesPage extends StatefulWidget {
 
 class _CoursesPageState extends State<CoursesPage> {
   final Set<String> favoriteCodes = {};
-  late Future<List<Course>> coursesFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    coursesFuture = courseRepository.loadCourses();
-  }
-
-  Future<void> refreshCourses() async {
-    setState(() {
-      coursesFuture = courseRepository.loadCourses();
-    });
-    await coursesFuture;
-  }
 
   Future<void> openCourse(Map<String, String> course) async {
     final result = await Navigator.push<bool>(
@@ -433,84 +427,93 @@ class _CoursesPageState extends State<CoursesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<CourseProvider>();
+
+    if (provider.isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (provider.error != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Daftar Courses')),
+        body: ErrorView(
+          message: provider.error!,
+          onRetry: provider.loadCourses,
+        ),
+      );
+    }
+
+    if (provider.courses.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Daftar Courses')),
+        body: const Center(
+          child: Text('Data course belum tersedia'),
+        ),
+      );
+    }
+
+    final apiCourses = provider.courses;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Courses')),
-      body: FutureBuilder<List<Course>>(
-        future: coursesFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+      appBar: AppBar(
+        title: const Text('Daftar Courses'),
+      ),
+      body: RefreshIndicator(
+        onRefresh: provider.loadCourses,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final columns = width < 600
+                ? 1
+                : (width < 840 ? 2 : 3);
 
-          if (snapshot.hasError) {
-            return Center(
-              child: Text('Gagal mengambil data: ${snapshot.error}'),
-            );
-          }
+            return GridView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: apiCourses.length,
+              gridDelegate:
+                  SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                mainAxisExtent: 210,
+              ),
+              itemBuilder: (context, index) {
+                final item = apiCourses[index];
 
-          final apiCourses = snapshot.data ?? [];
+                final course = <String, String>{
+                  'title': item.title,
+                  'code': item.code,
+                  'category': 'Course API',
+                  'description': 'Mata kuliah dari API.',
+                  'status': item.status,
+                  'credits': item.credits.toString(),
+                };
 
-          if (apiCourses.isEmpty) {
-            return const Center(
-              child: Text('Tidak ada data course.'),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: refreshCourses,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final width = constraints.maxWidth;
-                final columns = width < 600
-                    ? 1
-                    : (width < 840 ? 2 : 3);
-
-                return GridView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: apiCourses.length,
-                  gridDelegate:
-                      SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: columns,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    mainAxisExtent: 210,
-                  ),
-                  itemBuilder: (context, index) {
-                    final item = apiCourses[index];
-
-                    final course = <String, String>{
-                      'title': item.title,
-                      'code': item.code,
-                      'category': 'Course API',
-                      'description': 'Mata kuliah dari API.',
-                      'status': item.status,
-                      'credits': item.credits.toString(),
-                    };
-
-                    return CourseCard(
-                      course: course,
-                      isFavorite: favoriteCodes.contains(item.code),
-                      onFavorite: () {
-                        setState(() {
-                          if (!favoriteCodes.add(item.code)) {
-                            favoriteCodes.remove(item.code);
-                          }
-                        });
-                      },
-                      onTap: () => openCourse(course),
-                    );
+                return CourseCard(
+                  course: course,
+                  isFavorite: favoriteCodes.contains(item.code),
+                  onFavorite: () {
+                    setState(() {
+                      if (!favoriteCodes.add(item.code)) {
+                        favoriteCodes.remove(item.code);
+                      }
+                    });
                   },
+                  onTap: () => openCourse(course),
                 );
               },
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
 }
+
 
 
 

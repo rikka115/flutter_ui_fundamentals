@@ -4,6 +4,7 @@ import 'repositories/course_repository.dart';
 import 'package:provider/provider.dart';
 import 'providers/course_provider.dart';
 import 'widgets/error_view.dart';
+import 'screens/course_form_page.dart';
 
 const String studentName = 'Kadek Rica Cahyani';
 
@@ -509,6 +510,18 @@ class _CoursesPageState extends State<CoursesPage> {
             );
           },
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CourseFormPage(),
+            ),
+          );
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Tambah Course'),
       ),
     );
   }

@@ -1,4 +1,3 @@
-
 import '../models/course.dart';
 import '../services/course_api_service.dart';
 
@@ -10,5 +9,8 @@ class CourseRepository {
   Future<List<Course>> loadCourses() {
     return apiService.getCourses();
   }
-}
 
+  Future<Course> createCourse(Course course) {
+    return apiService.createCourse(course);
+  }
+}

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../models/course.dart';
 import '../repositories/course_repository.dart';
@@ -26,5 +25,9 @@ class CourseProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-}
 
+  Future<void> createCourse(Course course) async {
+    await repository.createCourse(course);
+    await loadCourses();
+  }
+}

@@ -7,12 +7,16 @@ import 'package:provider/provider.dart';
 import 'providers/course_provider.dart';
 import 'widgets/error_view.dart';
 import 'screens/course_form_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'config/supabase_config.dart';
 
 const String studentName = 'Kadek Rica Cahyani';
 
 const String studentNim = '2415051026';
 const String baseUrl =
     'https://course-api-pearl.vercel.app';
+const String supabaseUrl = SupabaseConfig.url;
+const String supabaseAnonKey = SupabaseConfig.anonKey;
 
 final CourseDataSource dataSource = CourseApiService(baseUrl);
 final repository = CourseRepository(dataSource);
@@ -56,7 +60,15 @@ const List<Map<String, String>> courses = [
 ];
 
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (!supabaseUrl.contains('YOUR_PROJECT_REF')) {
+    await Supabase.initialize(
+      url: supabaseUrl,
+      // ignore: deprecated_member_use
+      anonKey: supabaseAnonKey,
+    );
+  }
   runApp(
     ChangeNotifierProvider(
       create: (_) => CourseProvider(repository)..loadCourses(),

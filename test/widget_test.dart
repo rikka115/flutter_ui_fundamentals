@@ -1,30 +1,36 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:provider/provider.dart';
 import 'package:flutter_ui_fundamentals/main.dart';
+import 'package:flutter_ui_fundamentals/providers/course_provider.dart';
+import 'package:flutter_ui_fundamentals/models/course.dart';
+import 'package:flutter_ui_fundamentals/services/course_data_source.dart';
+import 'package:flutter_ui_fundamentals/repositories/course_repository.dart';
+
+class MockCourseDataSource implements CourseDataSource {
+  @override
+  Future<List<Course>> getCourses() async => [];
+
+  @override
+  Future<Course> createCourse(Course course) async => course;
+
+  @override
+  Future<void> updateCourse(int id, Course course) async {}
+
+  @override
+  Future<void> deleteCourse(int id) async {}
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('App displays student name and nim test', (WidgetTester tester) async {
+    final mockRepo = CourseRepository(MockCourseDataSource());
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => CourseProvider(mockRepo),
+        child: const MyApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(studentName), findsWidgets);
+    expect(find.text('NIM: $studentNim'), findsWidgets);
   });
 }

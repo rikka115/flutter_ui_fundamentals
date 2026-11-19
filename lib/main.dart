@@ -539,6 +539,7 @@ class CourseCard extends StatelessWidget {
   final bool isFavorite;
   final VoidCallback onFavorite;
   final VoidCallback onTap;
+  final VoidCallback? onDelete;
 
   const CourseCard({
     super.key,
@@ -546,6 +547,7 @@ class CourseCard extends StatelessWidget {
     required this.isFavorite,
     required this.onFavorite,
     required this.onTap,
+    this.onDelete,
   });
 
   @override
@@ -600,6 +602,12 @@ class CourseCard extends StatelessWidget {
                             );
                           },
                         ),
+                        if (onDelete != null)
+                          IconButton(
+                            tooltip: 'Hapus Course',
+                            icon: const Icon(Icons.close, size: 20, color: Colors.red),
+                            onPressed: onDelete,
+                          ),
                         IconButton(
                           tooltip: isFavorite
                               ? 'Hapus favorit'
@@ -661,6 +669,58 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
       appBar: AppBar(
         title: const Text('Detail Course'),
         actions: [
+          IconButton(
+            tooltip: 'Hapus Course',
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: () async {
+              final id = int.tryParse(course['id'] ?? '');
+              if (id == null) return;
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Konfirmasi Hapus'),
+                  content: Text(
+                    'Apakah Anda yakin ingin menghapus course "${course['title'] ?? ''}"?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Batal'),
+                    ),
+                    FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('Hapus'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true) {
+                if (!context.mounted) return;
+                try {
+                  await context.read<CourseProvider>().deleteCourse(id);
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Course berhasil dihapus'),
+                    ),
+                  );
+                  Navigator.pop(context, true);
+                } catch (e) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Gagal menghapus course: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+          ),
           IconButton(
             tooltip: 'Edit Course',
             icon: const Icon(Icons.edit),

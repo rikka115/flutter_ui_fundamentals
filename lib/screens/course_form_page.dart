@@ -61,13 +61,21 @@ class _CourseFormPageState extends State<CourseFormPage> {
 
     try {
       final provider = context.read<CourseProvider>();
-      await provider.createCourse(newCourse);
+      if (isEditing && widget.course?.id != null) {
+        await provider.updateCourse(widget.course!.id!, newCourse);
+      } else {
+        await provider.createCourse(newCourse);
+      }
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Course berhasil ditambahkan'),
+        SnackBar(
+          content: Text(
+            isEditing
+                ? 'Course berhasil diperbarui'
+                : 'Course berhasil ditambahkan',
+          ),
           backgroundColor: Colors.green,
         ),
       );
@@ -106,10 +114,13 @@ class _CourseFormPageState extends State<CourseFormPage> {
               TextFormField(
                 controller: _codeController,
                 readOnly: isEditing,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Kode Course',
                   hintText: 'Misal: MOB01',
-                  prefixIcon: Icon(Icons.code),
+                  prefixIcon: const Icon(Icons.code),
+                  helperText: isEditing
+                      ? 'Kode course tidak dapat diubah (kunci identitas)'
+                      : null,
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -186,7 +197,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                         ),
                       )
                     : const Icon(Icons.save),
-                label: Text(_isSaving ? 'Menyimpan...' : 'Simpan Course'),
+                label: Text(_isSaving ? 'Menyimpan...' : 'Simpan Perubahan'),
               ),
             ],
           ),

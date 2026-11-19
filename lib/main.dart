@@ -1,3 +1,4 @@
+import 'models/course.dart';
 import 'package:flutter/material.dart';
 import 'services/course_api_service.dart';
 import 'repositories/course_repository.dart';
@@ -486,6 +487,7 @@ class _CoursesPageState extends State<CoursesPage> {
                 final item = apiCourses[index];
 
                 final course = <String, String>{
+                  'id': item.id?.toString() ?? '',
                   'title': item.title,
                   'code': item.code,
                   'category': 'Course API',
@@ -574,20 +576,43 @@ class CourseCard extends StatelessWidget {
                     Text('Status: ${course['status'] ?? 'planned'}'),
                     Text('SKS: ${course['credits'] ?? '-'}'),
                     const Spacer(),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: IconButton(
-                        tooltip: isFavorite
-                            ? 'Hapus favorit'
-                            : 'Tambah favorit',
-                        onPressed: onFavorite,
-                        icon: Icon(
-                          isFavorite
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color: isFavorite ? Colors.red : null,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        IconButton(
+                          tooltip: 'Edit Course',
+                          icon: const Icon(Icons.edit, size: 20),
+                          onPressed: () {
+                            final id = int.tryParse(course['id'] ?? '');
+                            final credits = int.tryParse(course['credits'] ?? '0') ?? 0;
+                            final courseObj = Course(
+                              id: id,
+                              code: course['code'] ?? '',
+                              title: course['title'] ?? '',
+                              credits: credits,
+                              status: course['status'] ?? 'planned',
+                            );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CourseFormPage(course: courseObj),
+                              ),
+                            );
+                          },
                         ),
-                      ),
+                        IconButton(
+                          tooltip: isFavorite
+                              ? 'Hapus favorit'
+                              : 'Tambah favorit',
+                          onPressed: onFavorite,
+                          icon: Icon(
+                            isFavorite
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: isFavorite ? Colors.red : null,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -633,7 +658,36 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
     final course = widget.course;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail Course')),
+      appBar: AppBar(
+        title: const Text('Detail Course'),
+        actions: [
+          IconButton(
+            tooltip: 'Edit Course',
+            icon: const Icon(Icons.edit),
+            onPressed: () async {
+              final id = int.tryParse(course['id'] ?? '');
+              final credits = int.tryParse(course['credits'] ?? '0') ?? 0;
+              final courseObj = Course(
+                id: id,
+                code: course['code'] ?? '',
+                title: course['title'] ?? '',
+                credits: credits,
+                status: course['status'] ?? 'planned',
+              );
+              final updated = await Navigator.push<bool>(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CourseFormPage(course: courseObj),
+                ),
+              );
+              if (!context.mounted) return;
+              if (updated == true) {
+                Navigator.pop(context);
+              }
+            },
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

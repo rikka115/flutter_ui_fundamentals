@@ -1,5 +1,6 @@
 import 'models/course.dart';
 import 'package:flutter/material.dart';
+import 'services/course_data_source.dart';
 import 'services/course_api_service.dart';
 import 'repositories/course_repository.dart';
 import 'package:provider/provider.dart';
@@ -13,9 +14,8 @@ const String studentNim = '2415051026';
 const String baseUrl =
     'https://course-api-pearl.vercel.app';
 
-final courseRepository = CourseRepository(
-  CourseApiService(baseUrl),
-);
+final CourseDataSource dataSource = CourseApiService(baseUrl);
+final repository = CourseRepository(dataSource);
 const List<Map<String, String>> courses = [
   {
     'title': 'Flutter Dasar',
@@ -59,7 +59,7 @@ const List<Map<String, String>> courses = [
 void main() {
   runApp(
     ChangeNotifierProvider(
-      create: (_) => CourseProvider(courseRepository)..loadCourses(),
+      create: (_) => CourseProvider(repository)..loadCourses(),
       child: const MyApp(),
     ),
   );
@@ -77,7 +77,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-    courseRepository.loadCourses().then((data) {
+    repository.loadCourses().then((data) {
       debugPrint('Jumlah course dari API: ${data.length}');
     }).catchError((error) {
       debugPrint('Gagal mengambil data: $error');

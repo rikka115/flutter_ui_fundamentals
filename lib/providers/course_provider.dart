@@ -17,7 +17,7 @@ class CourseProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      courses = await repository.loadCourses();
+      courses = await repository.getCourses();
     } catch (e) {
       error = e.toString();
     } finally {

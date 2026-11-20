@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+
 import 'course_list_page.dart';
 import 'favorites_page.dart';
+import '../pages/device_feature_page.dart';
 
 class ResponsiveShell extends StatefulWidget {
   final Widget homePage;
@@ -29,6 +31,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
       const CourseListPage(),
       const FavoritesPage(),
       widget.profilePage,
+      const DeviceFeaturePage(),
     ];
   }
 
@@ -69,14 +72,16 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                       selectedIcon: Icon(Icons.person),
                       label: Text('Profile'),
                     ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.camera_alt_outlined),
+                      selectedIcon: Icon(Icons.camera_alt),
+                      label: Text('Perangkat'),
+                    ),
                   ],
                 ),
                 const VerticalDivider(width: 1),
                 Expanded(
-                  child: IndexedStack(
-                    index: selectedIndex,
-                    children: pages,
-                  ),
+                  child: IndexedStack(index: selectedIndex, children: pages),
                 ),
               ],
             ),
@@ -84,10 +89,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
         }
 
         return Scaffold(
-          body: IndexedStack(
-            index: selectedIndex,
-            children: pages,
-          ),
+          body: IndexedStack(index: selectedIndex, children: pages),
           bottomNavigationBar: NavigationBar(
             selectedIndex: selectedIndex,
             onDestinationSelected: (index) {
@@ -113,6 +115,11 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                 icon: Icon(Icons.person_outline),
                 selectedIcon: Icon(Icons.person),
                 label: 'Profile',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.camera_alt_outlined),
+                selectedIcon: Icon(Icons.camera_alt),
+                label: 'Perangkat',
               ),
             ],
           ),

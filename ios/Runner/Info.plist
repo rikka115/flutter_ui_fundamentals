@@ -24,6 +24,12 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Kamera digunakan untuk mengambil foto dokumentasi kelas.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Galeri digunakan untuk memilih foto dokumentasi kelas.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Lokasi digunakan untuk menyimpan koordinat dokumentasi kelas.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

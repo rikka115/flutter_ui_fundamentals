@@ -142,3 +142,33 @@ DROP POLICY IF EXISTS "tokens_delete_own" ON public.device_tokens;
 CREATE POLICY "tokens_delete_own"
   ON public.device_tokens FOR DELETE TO authenticated
   USING (auth.uid() = user_id);
+
+-- Worksheet 10: public photo bucket, with uploads restricted to each user's folder.
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'course-photos',
+  'course-photos',
+  TRUE,
+  5242880,
+  ARRAY['image/jpeg', 'image/png']
+)
+ON CONFLICT (id) DO UPDATE
+SET public = EXCLUDED.public,
+    file_size_limit = EXCLUDED.file_size_limit,
+    allowed_mime_types = EXCLUDED.allowed_mime_types;
+
+DROP POLICY IF EXISTS "course_photos_upload_own" ON storage.objects;
+CREATE POLICY "course_photos_upload_own"
+  ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'course-photos'
+    AND (storage.foldername(name))[1] = auth.uid()::TEXT
+  );
+
+DROP POLICY IF EXISTS "course_photos_read_own" ON storage.objects;
+CREATE POLICY "course_photos_read_own"
+  ON storage.objects FOR SELECT TO authenticated
+  USING (
+    bucket_id = 'course-photos'
+    AND (storage.foldername(name))[1] = auth.uid()::TEXT
+  );

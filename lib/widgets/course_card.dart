@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/course.dart';
 
 class CourseCard extends StatelessWidget {
@@ -34,12 +35,13 @@ class CourseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+      elevation: 0,
+      margin: const EdgeInsets.symmetric(vertical: 4),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(18),
         side: BorderSide(
-          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+          color: Theme.of(context).colorScheme.outlineVariant
+              .withValues(alpha: 0.6),
         ),
       ),
       child: InkWell(
@@ -57,7 +59,7 @@ class CourseCard extends StatelessWidget {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       Icons.menu_book,
@@ -72,26 +74,32 @@ class CourseCard extends StatelessWidget {
                       children: [
                         Text(
                           course.title,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '${course.code} • ${course.credits} SKS',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                               ),
                         ),
                       ],
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(course.status).withValues(alpha: 0.15),
+                      color: _getStatusColor(course.status)
+                          .withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: _getStatusColor(course.status),
@@ -123,7 +131,11 @@ class CourseCard extends StatelessWidget {
                   if (onDelete != null)
                     IconButton(
                       tooltip: 'Hapus Course',
-                      icon: const Icon(Icons.close, size: 20, color: Colors.red),
+                      icon: const Icon(
+                        Icons.close,
+                        size: 20,
+                        color: Colors.red,
+                      ),
                       onPressed: onDelete,
                     ),
                   IconButton(

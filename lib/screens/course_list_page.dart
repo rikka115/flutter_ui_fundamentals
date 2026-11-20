@@ -20,7 +20,7 @@ class CourseListPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Course Data Manager'),
+        title: const Text('Daftar Course'),
         actions: [
           IconButton(
             tooltip: 'Refresh Data',
@@ -72,73 +72,38 @@ class CourseListPage extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: provider.loadCourses,
       child: ListView(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         children: [
-          // Student identity banner
-          Card(
-            color: Theme.of(context).colorScheme.primaryContainer
-                .withValues(alpha: 0.4),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  const Icon(Icons.badge_outlined, size: 24),
-                  const SizedBox(width: 12),
-                  Text(
-                    '2415051026 • Kadek Rica Cahyani',
-                    style: Theme.of(context).textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
+          Text(
+            'Semua Course',
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${provider.courses.length} materi tersedia',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 8),
-
-          // Add Course Button Banner (sesuai mockup Tahap 16)
-          if (canManageCourses)
-            Card(
-              color: Colors.green.withValues(alpha: 0.12),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CourseFormPage(),
-                    ),
-                  );
-                },
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.add, color: Colors.green),
-                      SizedBox(width: 8),
-                      Text(
-                        'Tambah Course',
-                        style: TextStyle(
-                          color: Colors.green,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
           if (provider.courses.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 48),
-              child: Center(
-                child: Text(
-                  'Data course belum tersedia',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 48),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.menu_book_outlined,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Data course belum tersedia',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ],
               ),
             )
           else

@@ -85,8 +85,25 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       scaffoldMessengerKey: messengerKey,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF4169A1),
+          surface: const Color(0xFFF6F8FB),
+        ),
         useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFF6F8FB),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFF6F8FB),
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+        ),
+        cardTheme: CardThemeData(
+          color: Colors.white,
+          elevation: 0,
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+        ),
         inputDecorationTheme: const InputDecorationTheme(
           border: OutlineInputBorder(),
         ),
@@ -179,21 +196,29 @@ class StudentHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Card(
+      color: colorScheme.primaryContainer.withValues(alpha: 0.55),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const CircleAvatar(child: Icon(Icons.school)),
-            const SizedBox(width: 12),
+            CircleAvatar(
+              radius: 25,
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+              child: const Icon(Icons.school_outlined),
+            ),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     studentName,
-                    style: Theme.of(context).textTheme.titleMedium,
+                    style: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 4),
                   const Text('NIM: $studentNim'),
@@ -212,7 +237,6 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.sizeOf(context);
     final provider = context.watch<CourseProvider>();
 
     return Scaffold(
@@ -233,24 +257,39 @@ class HomePage extends StatelessWidget {
               : 3;
 
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
             children: [
               const StudentHeader(),
-              const SizedBox(height: 12),
+              const SizedBox(height: 24),
               Text(
-                'Selamat datang di Course Data Manager.',
-                style: Theme.of(context).textTheme.titleMedium,
+                'Selamat datang',
+                style: Theme.of(context).textTheme.headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w700),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               Text(
-                'Ukuran layar: ${screenSize.width.toInt()} × ${screenSize.height.toInt()}',
+                'Ringkasan aktivitas belajarmu ada di sini.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
-              Text(
-                'Orientasi: ${screenSize.width > screenSize.height ? "Landscape" : "Portrait"}',
-              ),
-              Text('Breakpoint layout: $layoutName'),
               const SizedBox(height: 16),
-              Text('Ringkasan', style: Theme.of(context).textTheme.titleLarge),
+              Row(
+                children: [
+                  Text(
+                    'Ringkasan',
+                    style: Theme.of(context).textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  const Spacer(),
+                  Text(
+                    layoutName,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
               GridView.count(
                 crossAxisCount: columnCount,
@@ -258,7 +297,11 @@ class HomePage extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: width < 600 ? 2.6 : 1.8,
+                childAspectRatio: width < 600
+                    ? 2.6
+                    : width < 840
+                    ? 2.4
+                    : 3.2,
                 children: [
                   SummaryCard(
                     title: 'Total Course',
@@ -277,10 +320,11 @@ class HomePage extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               Text(
                 'Materi yang dipelajari',
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
               const Wrap(
@@ -296,18 +340,28 @@ class HomePage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 20),
-              const Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.info_outline),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      '$studentNim - $studentName - Course Data Manager berhasil terintegrasi dengan REST API dan Supabase PostgreSQL.',
-                      softWrap: true,
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        'Course Data Manager membantu mengelola materi dan progres perkuliahan.',
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           );
@@ -331,21 +385,40 @@ class SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(icon, size: 28),
-            const SizedBox(width: 10),
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, size: 22, color: colorScheme.primary),
+            ),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  ),
                   const SizedBox(height: 4),
-                  Text(value, style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    value,
+                    style: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
                 ],
               ),
             ),

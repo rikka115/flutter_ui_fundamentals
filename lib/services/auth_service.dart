@@ -4,17 +4,37 @@ class AuthService {
   AuthService._();
   static final AuthService instance = AuthService._();
 
-  final SupabaseClient _client = Supabase.instance.client;
+  SupabaseClient get _client => Supabase.instance.client;
 
-  User? get currentUser => _client.auth.currentUser;
-  Session? get currentSession => _client.auth.currentSession;
+  User? get currentUser {
+    try {
+      return _client.auth.currentUser;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Session? get currentSession {
+    try {
+      return _client.auth.currentSession;
+    } catch (_) {
+      return null;
+    }
+  }
+
   bool get isLoggedIn => currentSession != null;
 
   Future<AuthResponse> register({
     required String email,
     required String password,
+    String name = '',
+    String role = 'seeker',
   }) {
-    return _client.auth.signUp(email: email, password: password);
+    return _client.auth.signUp(
+      email: email,
+      password: password,
+      data: {'name': name, 'role': role},
+    );
   }
 
   Future<AuthResponse> login({

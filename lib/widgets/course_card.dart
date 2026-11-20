@@ -23,12 +23,12 @@ class CourseCard extends StatelessWidget {
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'active':
-        return Colors.green;
+        return const Color(0xFF15803D);
       case 'done':
-        return Colors.blue;
+        return const Color(0xFF1D4ED8);
       case 'planned':
       default:
-        return Colors.orange;
+        return const Color(0xFFB45309);
     }
   }
 
@@ -36,19 +36,16 @@ class CourseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      margin: const EdgeInsets.symmetric(vertical: 4),
+      margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.outlineVariant
-              .withValues(alpha: 0.6),
-        ),
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Color(0xFFDBEAFE)),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -58,13 +55,13 @@ class CourseCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
+                      color: const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
-                      Icons.menu_book,
-                      size: 24,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      Icons.menu_book_rounded,
+                      size: 23,
+                      color: const Color(0xFF1D4ED8),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -75,18 +72,20 @@ class CourseCard extends StatelessWidget {
                         Text(
                           course.title,
                           style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                              ?.copyWith(
+                                color: const Color(0xFF1E3A8A),
+                                fontWeight: FontWeight.w700,
+                              ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '${course.code} • ${course.credits} SKS',
-                          style: Theme.of(context).textTheme.bodyMedium
+                          style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
+                                color: const Color(0xFF64748B),
+                                fontWeight: FontWeight.w600,
                               ),
                         ),
                       ],
@@ -100,11 +99,7 @@ class CourseCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: _getStatusColor(course.status)
                           .withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: _getStatusColor(course.status),
-                        width: 1,
-                      ),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       course.status.toUpperCase(),
@@ -118,7 +113,7 @@ class CourseCard extends StatelessWidget {
                 ],
               ),
               const Spacer(),
-              const Divider(height: 12),
+              const Divider(height: 12, color: Color(0xFFEFF6FF)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -141,9 +136,11 @@ class CourseCard extends StatelessWidget {
                   IconButton(
                     tooltip: isFavorite ? 'Hapus Favorit' : 'Tambah Favorit',
                     icon: Icon(
-                      isFavorite ? Icons.favorite : Icons.favorite_border,
+                      isFavorite
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
                       size: 20,
-                      color: isFavorite ? Colors.red : null,
+                      color: isFavorite ? const Color(0xFFDC2626) : null,
                     ),
                     onPressed: onFavorite,
                   ),

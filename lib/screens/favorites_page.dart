@@ -50,53 +50,107 @@ class FavoritesPage extends StatelessWidget {
                 final width = constraints.maxWidth;
                 final columns = width < 600 ? 1 : (width < 840 ? 2 : 3);
 
-                return GridView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: favorites.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: columns,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    mainAxisExtent: 160,
-                  ),
-                  itemBuilder: (context, index) {
-                    final item = favorites[index];
-                    return CourseCard(
-                      course: item,
-                      isFavorite: true,
-                      onFavorite: () => provider.toggleFavorite(item.code),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                CourseDetailPage(course: item),
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
                           ),
-                        );
-                      },
-                      onEdit: canManageCourses
-                          ? () {
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.favorite_rounded,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Koleksi Favorit',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                  ),
+                                  Text(
+                                    '${favorites.length} course tersimpan',
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GridView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                        itemCount: favorites.length,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: columns,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          mainAxisExtent: 174,
+                        ),
+                        itemBuilder: (context, index) {
+                          final item = favorites[index];
+                          return CourseCard(
+                            course: item,
+                            isFavorite: true,
+                            onFavorite: () =>
+                                provider.toggleFavorite(item.code),
+                            onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      CourseFormPage(course: item),
+                                      CourseDetailPage(course: item),
                                 ),
                               );
-                            }
-                          : null,
-                      onDelete: canManageCourses
-                          ? () async {
-                              if (item.id != null) {
-                                await provider.deleteCourse(
-                                  item.id!,
-                                  item.code,
-                                );
-                              }
-                            }
-                          : null,
-                    );
-                  },
+                            },
+                            onEdit: canManageCourses
+                                ? () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            CourseFormPage(course: item),
+                                      ),
+                                    );
+                                  }
+                                : null,
+                            onDelete: canManageCourses
+                                ? () async {
+                                    if (item.id != null) {
+                                      await provider.deleteCourse(
+                                        item.id!,
+                                        item.code,
+                                      );
+                                    }
+                                  }
+                                : null,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 );
               },
             ),

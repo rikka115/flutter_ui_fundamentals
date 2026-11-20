@@ -24,7 +24,10 @@ class CourseDetailPage extends StatelessWidget {
             ? [
                 IconButton(
                   tooltip: 'Hapus Course',
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  icon: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: Color(0xFFDC2626),
+                  ),
                   onPressed: () async {
                     if (course.id == null) return;
                     final confirm = await showDialog<bool>(
@@ -40,9 +43,6 @@ class CourseDetailPage extends StatelessWidget {
                             child: const Text('Batal'),
                           ),
                           FilledButton(
-                            style: FilledButton.styleFrom(
-                              backgroundColor: Colors.red,
-                            ),
                             onPressed: () => Navigator.pop(ctx, true),
                             child: const Text('Hapus'),
                           ),
@@ -97,43 +97,67 @@ class CourseDetailPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Student Header
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  const CircleAvatar(child: Icon(Icons.school)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Kadek Rica Cahyani',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 4),
-                        const Text('NIM: 2415051026'),
-                      ],
-                    ),
-                  ),
-                ],
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
               ),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Row(
+              children: [
+                const CircleAvatar(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Color(0xFF1D4ED8),
+                  child: Icon(Icons.school_rounded),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Kadek Rica Cahyani',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'NIM: 2415051026  •  Pendidikan Teknik Informatika',
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 20),
-          Icon(
-            Icons.menu_book,
-            size: 64,
-            color: Theme.of(context).colorScheme.primary,
+          Container(
+            width: 76,
+            height: 76,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(22),
+            ),
+            child: const Icon(
+              Icons.menu_book_rounded,
+              size: 40,
+              color: Color(0xFF1D4ED8),
+            ),
           ),
           const SizedBox(height: 12),
           Text(
             course.title,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: const Color(0xFF1E3A8A),
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 20),
           _DetailCard(label: 'Kode', value: course.code),
@@ -151,7 +175,7 @@ class CourseDetailPage extends StatelessWidget {
             },
             icon: Icon(
               isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: isFavorite ? Colors.red : null,
+              color: isFavorite ? const Color(0xFFDC2626) : null,
             ),
             label: Text(
               isFavorite ? 'Hapus dari Favorit' : 'Tambah ke Favorit',
@@ -181,7 +205,7 @@ class _DetailCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -189,11 +213,22 @@ class _DetailCard extends StatelessWidget {
               width: 110,
               child: Text(
                 label,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Color(0xFF64748B),
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             const SizedBox(width: 8),
-            Expanded(child: Text(value)),
+            Expanded(
+              child: Text(
+                value,
+                style: const TextStyle(
+                  color: Color(0xFF1E3A8A),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
           ],
         ),
       ),

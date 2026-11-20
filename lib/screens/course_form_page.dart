@@ -113,100 +113,163 @@ class _CourseFormPageState extends State<CourseFormPage> {
       appBar: AppBar(title: Text(isEditing ? 'Edit Course' : 'Tambah Course')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _codeController,
-                readOnly: isEditing,
-                decoration: InputDecoration(
-                  labelText: 'Kode Course',
-                  hintText: 'Misal: MOB01',
-                  prefixIcon: const Icon(Icons.code),
-                  helperText: isEditing
-                      ? 'Kode course tidak dapat diubah (kunci identitas)'
-                      : null,
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Kode course wajib diisi';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Judul Course',
-                  hintText: 'Misal: Flutter State Management',
-                  prefixIcon: Icon(Icons.book),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Judul course wajib diisi';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _creditsController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Jumlah SKS / Credits',
-                  hintText: 'Misal: 3',
-                  prefixIcon: Icon(Icons.credit_score),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'SKS wajib diisi';
-                  }
-                  final n = int.tryParse(value.trim());
-                  if (n == null || n <= 0) {
-                    return 'SKS harus berupa angka positif';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: _status,
-                decoration: const InputDecoration(
-                  labelText: 'Status Course',
-                  prefixIcon: Icon(Icons.flag),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'planned', child: Text('Planned')),
-                  DropdownMenuItem(value: 'active', child: Text('Active')),
-                  DropdownMenuItem(value: 'done', child: Text('Done')),
-                ],
-                onChanged: _isSaving
-                    ? null
-                    : (val) {
-                        if (val != null) {
-                          setState(() => _status = val);
-                        }
-                      },
-              ),
-              const SizedBox(height: 24),
-              FilledButton.icon(
-                onPressed: _isSaving ? null : _saveCourse,
-                icon: _isSaving
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 680),
+            child: Form(
+              key: _formKey,
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                      )
-                    : const Icon(Icons.save),
-                label: Text(_isSaving ? 'Menyimpan...' : 'Simpan Perubahan'),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.edit_note_rounded,
+                              color: Color(0xFF1D4ED8),
+                              size: 26,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    isEditing
+                                        ? 'Perbarui informasi course'
+                                        : 'Tambahkan course baru',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          color: const Color(0xFF1E3A8A),
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  const Text(
+                                    'Lengkapi detail materi perkuliahan.',
+                                    style: TextStyle(
+                                      color: Color(0xFF64748B),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        controller: _codeController,
+                        readOnly: isEditing,
+                        decoration: InputDecoration(
+                          labelText: 'Kode Course',
+                          hintText: 'Misal: MOB01',
+                          prefixIcon: const Icon(Icons.code),
+                          helperText: isEditing
+                              ? 'Kode course tidak dapat diubah (kunci identitas)'
+                              : null,
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Kode course wajib diisi';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _titleController,
+                        decoration: const InputDecoration(
+                          labelText: 'Judul Course',
+                          hintText: 'Misal: Flutter State Management',
+                          prefixIcon: Icon(Icons.book),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Judul course wajib diisi';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _creditsController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Jumlah SKS / Credits',
+                          hintText: 'Misal: 3',
+                          prefixIcon: Icon(Icons.credit_score),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'SKS wajib diisi';
+                          }
+                          final n = int.tryParse(value.trim());
+                          if (n == null || n <= 0) {
+                            return 'SKS harus berupa angka positif';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        initialValue: _status,
+                        decoration: const InputDecoration(
+                          labelText: 'Status Course',
+                          prefixIcon: Icon(Icons.flag),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'planned',
+                            child: Text('Planned'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'active',
+                            child: Text('Active'),
+                          ),
+                          DropdownMenuItem(value: 'done', child: Text('Done')),
+                        ],
+                        onChanged: _isSaving
+                            ? null
+                            : (val) {
+                                if (val != null) {
+                                  setState(() => _status = val);
+                                }
+                              },
+                      ),
+                      const SizedBox(height: 24),
+                      FilledButton.icon(
+                        onPressed: _isSaving ? null : _saveCourse,
+                        icon: _isSaving
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.save),
+                        label: Text(
+                          _isSaving ? 'Menyimpan...' : 'Simpan Perubahan',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ],
+            ),
           ),
         ),
       ),

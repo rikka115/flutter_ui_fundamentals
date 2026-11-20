@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../models/course.dart';
 import '../providers/course_provider.dart';
+import '../providers/profile_provider.dart';
 
 class CourseFormPage extends StatefulWidget {
   final Course? course;
@@ -43,6 +45,13 @@ class _CourseFormPageState extends State<CourseFormPage> {
 
   Future<void> _saveCourse() async {
     if (_isSaving) return;
+
+    if (!context.read<ProfileProvider>().canManageCourses) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Hanya admin yang dapat mengubah course')),
+      );
+      return;
+    }
 
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
@@ -101,9 +110,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isEditing ? 'Edit Course' : 'Tambah Course'),
-      ),
+      appBar: AppBar(title: Text(isEditing ? 'Edit Course' : 'Tambah Course')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(

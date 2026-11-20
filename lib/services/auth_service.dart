@@ -6,21 +6,8 @@ class AuthService {
 
   SupabaseClient get _client => Supabase.instance.client;
 
-  User? get currentUser {
-    try {
-      return _client.auth.currentUser;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Session? get currentSession {
-    try {
-      return _client.auth.currentSession;
-    } catch (_) {
-      return null;
-    }
-  }
+  User? get currentUser => _client.auth.currentUser;
+  Session? get currentSession => _client.auth.currentSession;
 
   bool get isLoggedIn => currentSession != null;
 
@@ -28,12 +15,11 @@ class AuthService {
     required String email,
     required String password,
     String name = '',
-    String role = 'seeker',
   }) {
     return _client.auth.signUp(
       email: email,
       password: password,
-      data: {'name': name, 'role': role},
+      data: {'name': name},
     );
   }
 

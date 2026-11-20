@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../services/auth_service.dart';
-import 'home_page.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -36,11 +36,6 @@ class _LoginPageState extends State<LoginPage> {
         email: _emailC.text.trim(),
         password: _passC.text,
       );
-      if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const HomePage()),
-        (route) => false,
-      );
     } on AuthException catch (e) {
       // Password salah / email belum terdaftar -> "Invalid login credentials"
       _showMessage(e.message);
@@ -54,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login KosFinder')),
+      appBar: AppBar(title: const Text('Login Course Data Manager')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -97,9 +92,9 @@ class _LoginPageState extends State<LoginPage> {
                     : const Text('Login'),
               ),
               TextButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const RegisterPage()),
-                ),
+                onPressed: () => Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const RegisterPage())),
                 child: const Text('Belum punya akun? Register'),
               ),
             ],

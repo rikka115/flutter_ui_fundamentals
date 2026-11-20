@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/auth_service.dart';
-import 'home_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -17,7 +16,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final _passC = TextEditingController();
   final _confirmC = TextEditingController();
   final _nameC = TextEditingController();
-  String _role = 'seeker';
   bool _loading = false;
 
   @override
@@ -41,16 +39,9 @@ class _RegisterPageState extends State<RegisterPage> {
         email: _emailC.text.trim(),
         password: _passC.text,
         name: _nameC.text.trim(),
-        role: _role,
       );
       if (!mounted) return;
-      if (res.session != null) {
-        // Konfirmasi email nonaktif: user langsung login -> ke Home.
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const HomePage()),
-          (route) => false,
-        );
-      } else {
+      if (res.session == null) {
         // Konfirmasi email aktif: minta user cek email.
         _showMessage('Registrasi berhasil. Silakan cek email Anda.');
         Navigator.of(context).pop();
@@ -79,16 +70,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 decoration: const InputDecoration(labelText: 'Nama'),
                 validator: (v) =>
                     (v == null || v.trim().isEmpty) ? 'Nama wajib diisi' : null,
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _role,
-                decoration: const InputDecoration(labelText: 'Daftar sebagai'),
-                items: const [
-                  DropdownMenuItem(value: 'seeker', child: Text('Pencari Kos')),
-                  DropdownMenuItem(value: 'owner', child: Text('Pemilik Kos')),
-                ],
-                onChanged: (value) => setState(() => _role = value ?? 'seeker'),
               ),
               const SizedBox(height: 12),
               TextFormField(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/course_provider.dart';
+import '../providers/profile_provider.dart';
 import '../widgets/course_card.dart';
 import 'course_detail_page.dart';
 import 'course_form_page.dart';
@@ -11,12 +13,11 @@ class FavoritesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CourseProvider>();
+    final canManageCourses = context.watch<ProfileProvider>().canManageCourses;
     final favorites = provider.favoriteCourses;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Course Favorit'),
-      ),
+      appBar: AppBar(title: const Text('Course Favorit')),
       body: favorites.isEmpty
           ? Center(
               child: Padding(
@@ -32,9 +33,8 @@ class FavoritesPage extends StatelessWidget {
                     const SizedBox(height: 16),
                     Text(
                       'Belum Ada Course Favorit',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style: Theme.of(context).textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     const Text(
@@ -69,23 +69,32 @@ class FavoritesPage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => CourseDetailPage(course: item),
+                            builder: (context) =>
+                                CourseDetailPage(course: item),
                           ),
                         );
                       },
-                      onEdit: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CourseFormPage(course: item),
-                          ),
-                        );
-                      },
-                      onDelete: () async {
-                        if (item.id != null) {
-                          await provider.deleteCourse(item.id!, item.code);
-                        }
-                      },
+                      onEdit: canManageCourses
+                          ? () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      CourseFormPage(course: item),
+                                ),
+                              );
+                            }
+                          : null,
+                      onDelete: canManageCourses
+                          ? () async {
+                              if (item.id != null) {
+                                await provider.deleteCourse(
+                                  item.id!,
+                                  item.code,
+                                );
+                              }
+                            }
+                          : null,
                     );
                   },
                 );

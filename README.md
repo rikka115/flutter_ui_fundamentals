@@ -95,6 +95,25 @@ lib/
    flutter run
    ```
 
+### Worksheet 9: Authentication, Authorization & Notifications
+
+Worksheet 9 diterapkan pada **Course Data Manager** yang sudah ada. Contoh domain pada worksheet tidak mengganti fitur course, dashboard, favorit, atau navigasi responsive.
+
+- Login dan registrasi menggunakan Supabase Auth. Akun baru mendapat role `student`; role `admin` hanya dapat diberikan dari Supabase SQL Editor.
+- Jalankan `supabase_schema.sql` pada SQL Editor untuk membuat profil dan device-token serta menerapkan RLS pada tabel `courses`. Admin dapat melakukan CRUD course; student hanya dapat membaca.
+- Isi Project URL dan anon/publishable key di `lib/config/supabase_config.dart`. Jangan gunakan `service_role` key di aplikasi.
+- Untuk FCM Android, letakkan `google-services.json` di `android/app/`. Plugin Google Services hanya diterapkan bila file tersebut tersedia, sehingga project tetap dapat dibangun sebelum Firebase dikonfigurasi. Untuk iOS, tambahkan konfigurasi Firebase iOS di Runner. Tanpa konfigurasi Firebase, fitur push notification tidak aktif.
+
+Jadikan akun admin setelah registrasi:
+
+```sql
+UPDATE public.profiles
+SET role = 'admin'
+WHERE email = 'email-admin@example.com';
+```
+
+Logout lalu login kembali setelah role berubah. Pengujian push notification membutuhkan perangkat yang sudah terdaftar pada Firebase.
+
 ---
 
 ### Riwayat Commit Praktikum (Pertemuan 7)

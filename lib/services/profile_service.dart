@@ -13,8 +13,6 @@ class UserProfile {
     required this.role,
   });
 
-  bool get isSeeker => role == 'seeker';
-  bool get isOwner => role == 'owner';
   bool get isAdmin => role == 'admin';
 
   factory UserProfile.fromMap(Map<String, dynamic> map) {
@@ -22,7 +20,7 @@ class UserProfile {
       id: map['id'] as String,
       email: (map['email'] ?? '') as String,
       name: (map['name'] ?? '') as String,
-      role: (map['role'] ?? 'seeker') as String,
+      role: (map['role'] ?? 'student') as String,
     );
   }
 }

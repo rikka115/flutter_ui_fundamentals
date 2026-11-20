@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -19,6 +21,10 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 class NotificationService {
   NotificationService._();
   static final NotificationService instance = NotificationService._();
+
+  StreamSubscription<RemoteMessage>? _foregroundSubscription;
+  StreamSubscription<RemoteMessage>? _openedSubscription;
+  StreamSubscription<String>? _tokenSubscription;
 
   FirebaseMessaging get _messaging => FirebaseMessaging.instance;
 
@@ -43,8 +49,9 @@ class NotificationService {
 
   void listenTokenRefresh(void Function(String token) onRefresh) {
     if (Firebase.apps.isEmpty) return;
+    _tokenSubscription?.cancel();
     // ignore: deprecated_member_use
-    _messaging.onTokenRefresh.listen(onRefresh);
+    _tokenSubscription = _messaging.onTokenRefresh.listen(onRefresh);
   }
 
   Future<void> saveTokenToSupabase(String token) async {
@@ -77,7 +84,10 @@ class NotificationService {
       sound: true,
     );
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    await _foregroundSubscription?.cancel();
+    _foregroundSubscription = FirebaseMessaging.onMessage.listen((
+      RemoteMessage message,
+    ) {
       debugPrint('[FOREGROUND] Notification received');
       debugPrint('title: ${message.notification?.title}');
       debugPrint('body : ${message.notification?.body}');
@@ -94,14 +104,26 @@ class NotificationService {
   Future<void> setupInteractedMessage() async {
     if (Firebase.apps.isEmpty) return;
 
+    await _openedSubscription?.cancel();
     final initial = await _messaging.getInitialMessage();
     if (initial != null) _handleTap(initial);
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleTap);
+    _openedSubscription = FirebaseMessaging.onMessageOpenedApp.listen(
+      _handleTap,
+    );
   }
 
   void _handleTap(RemoteMessage message) {
-    final kosId = message.data['kos_id'];
-    if (kosId == null) return;
-    debugPrint('Notification opened for kos_id: $kosId');
+    final courseId = message.data['course_id'];
+    final title = message.notification?.title ?? 'Notifikasi course';
+    final body = message.notification?.body ?? '';
+    messengerKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Text(
+          courseId == null
+              ? '$title\n$body'
+              : '$title\n$body (Course ID: $courseId)',
+        ),
+      ),
+    );
   }
 }
